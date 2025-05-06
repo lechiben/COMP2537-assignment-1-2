@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 
-// Define the schema for users
 const userSchema = new mongoose.Schema({
   username: {
     type: String,
@@ -11,6 +10,12 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  favourites: [
+    {
+      name: { type: String, required: true },
+      pokemonID: { type: Number, required: true },
+    }
+  ]
 });
 
 module.exports = mongoose.model("User", userSchema);
