@@ -4,7 +4,7 @@ const path = require("path");
 const dotenv = require("dotenv");
 const session = require("express-session");
 
-require("dotenv").config();
+dotenv.config();
 
 const app = express();
 
@@ -26,18 +26,21 @@ app.use(
 const FileStore = require("session-file-store")(session);
 const fileStoreOptions = {}; // if we dont reassign the variable to different reference/ addresses we always use const.
 
+// add nodemon.json to stop server from reloading every save
 app.use(
   session({
     store: new FileStore(fileStoreOptions),
     secret: "keyboard cat",
+    resave: false,
   })
 );
 
 // Serve static files from the public directory
 app.use(express.static(path.join(__dirname, "public")));
 
-// Parse URL-encoded bodies (for form data)
+// Parse URL-encoded bodies (for form data) and JSON bodies (for API requests)
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 // Import route files
 const authRoutes = require("./routes/auth");

@@ -11,21 +11,49 @@ let currentPage = 1,
 let allPokemons = [];
 let filteredPokemons = [];
 let userFavorites = [];
+let isLoggedIn = false;
+
+// Check login status
+const checkLoginStatus = () => {
+  fetch("/check-auth", { method: "GET" })
+    .then((response) => response.json())
+    .then((data) => {
+      isLoggedIn = data.isAuthenticated;
+      if (isLoggedIn) {
+        fetchFavorites();
+      }
+      // Check for pending favorite action from redirect
+      const urlParams = new URLSearchParams(window.location.search);
+      const pendingPokemon = urlParams.get("addFavorite");
+      if (pendingPokemon && isLoggedIn) {
+        const pokemon = JSON.parse(decodeURIComponent(pendingPokemon));
+        addToFavorites(pokemon);
+        // Clear query parameter
+        window.history.replaceState(
+          {},
+          document.title,
+          window.location.pathname
+        );
+      }
+    })
+    .catch((error) => console.error("Error checking login status:", error));
+};
 
 // Function to fetch user's favorites
 const fetchFavorites = () => {
   fetch("/favorites", { method: "GET" })
     .then((response) => response.json())
     .then((data) => {
-      // assign querries result to userFavourites
       userFavorites = data;
-      const favoriteList = document.getElementById("favorite-list");
-      favoriteList.innerHTML = ""; // clear the list before addning new
-      data.forEach((favorite) => {
-        const li = document.createElement("li");
-        li.innerText = favorite.name;
-        favoriteList.appendChild(li);
-      });
+      const favoriteList = document.getElementById("favorites-list");
+      if (favoriteList) {
+        favoriteList.innerHTML = ""; // Clear the list
+        data.forEach((favorite) => {
+          const li = document.createElement("li");
+          li.innerText = favorite.name;
+          favoriteList.appendChild(li);
+        });
+      }
     })
     .catch((error) => console.error("Error fetching favorites:", error));
 };
@@ -39,18 +67,13 @@ const fetchPokemon = (page) => {
     .then((respJSON) => {
       // Calculate the total number of pages available
       totalPages = Math.ceil(respJSON.count / limit);
-      // Fetch details for each Pokémon to get their image
+      // Fetch details for each Pokémon to get their image and ID
       const fetches = respJSON.results.map((pokemon) =>
         fetch(pokemon.url)
           .then((res) => res.json())
           .then((pokeData) => ({
             name: pokeData.name,
-            // use official artwork
             image: pokeData.sprites.other["official-artwork"].front_default,
-            // this is 3D version artwork
-            // image: pokeData.sprites.other.home.front_default,
-            // this is gameboy version artwork
-            // image: pokeData.sprites.front_default,
             id: pokeData.id,
           }))
       );
@@ -61,39 +84,49 @@ const fetchPokemon = (page) => {
       filteredPokemons = pokemons; // Initialize filtered list
       renderPokemonList(pokemons);
       updatePagination();
-      fetchFavorites(); // fetch favorite to update button states
+      if (isLoggedIn) {
+        fetchFavorites(); // Fetch favorites to update button states
+      }
     })
     .catch(console.error);
 };
 
-// Function to add Pokemon to favorites
+// Function to add Pokémon to favorites
 const addToFavorites = (pokemon) => {
-  fetch("favorites", {
+  if (!isLoggedIn) {
+    // Redirect to login with Pokémon data
+    const redirectUrl = `/login?redirect=${encodeURIComponent(
+      window.location.pathname
+    )}&addFavorite=${encodeURIComponent(JSON.stringify(pokemon))}`;
+    window.location.href = redirectUrl;
+    return;
+  }
+  fetch("/favorites", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name: pokemon.name, pokemonId: pokemon.id }),
   })
-    .then(() => response.json())
+    .then((response) => response.json())
     .then((favorites) => {
       userFavorites = favorites;
-      fetchFavorites(); // update favorites list
-      renderPokemonList(filteredPokemons); // re-render to update buttons
+      fetchFavorites(); // Update favorites list
+      renderPokemonList(filteredPokemons); // Re-render to update buttons
     })
     .catch((error) => console.error("Error adding favorite:", error));
 };
 
-// Function to remove Pokemon from favorites
+// Function to remove Pokémon from favorites
 const removeFromFavorites = (pokemonId) => {
   fetch("/favorites", {
-    metho: "DELETE",
+    method: "DELETE",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ pokemonId }),
   })
     .then((response) => response.json())
     .then((favorites) => {
       userFavorites = favorites;
-      fetchFavorites(); // update favorites list
-      renderPokemonList(filteredPokemons);
+      fetchFavorites(); // Update favorites list
+      renderPokemonList(filteredPokemons); // Re-render to update buttons
     })
     .catch((error) => console.error("Error removing favorite:", error));
 };
@@ -103,7 +136,7 @@ function renderPokemonList(pokemons) {
   result.innerHTML = "";
   pokemons.forEach((pokemon) => {
     const isFavorite = userFavorites.some(
-      (fav) => fav.pokemonID === pokemon.id
+      (fav) => fav.pokemonId === pokemon.id
     );
     result.innerHTML += `
       <div class="w-[230px] flex-row gap-4 items-center justify-center relative group">
@@ -119,13 +152,12 @@ function renderPokemonList(pokemons) {
             isFavorite
               ? "bg-red-500 hover:bg-red-700"
               : "bg-blue-500 hover:bg-blue-700"
-          }"
-          onclick=' ${
-            isFavorite
-              ? `removeFromFavorites(${pokemon.id})`
-              : `addToFavorites(${JSON.stringify(pokemon)})`
-          }'>
-          ${isFavorite ? "Remove from Favorites" : "Add to Favorites"}
+          }" onclick='${
+      isFavorite
+        ? `removeFromFavorites(${pokemon.id})`
+        : `addToFavorites(${JSON.stringify(pokemon)})`
+    }'>
+            ${isFavorite ? "Remove from Favorites" : "Add to Favorites"}
           </button>
         </div>
       </div>
@@ -241,4 +273,5 @@ window.addToFavorites = addToFavorites;
 window.removeFromFavorites = removeFromFavorites;
 
 // Initial fetch
+checkLoginStatus();
 fetchPokemon(1);

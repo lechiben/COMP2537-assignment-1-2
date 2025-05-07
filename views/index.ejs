@@ -8,9 +8,13 @@
   </head>
   <body class="bg-gray-100 flex flex-col items-center p-4">
     <% if (typeof username !== 'undefined' && username) { %>
-    <h1 class="text-3xl font-bold mb-4">
-      Welcome to <%= username %> Pokemon Book
-    </h1>
+      <h1 class="text-3xl font-bold mb-4">
+        Welcome to <%= username %>'s Pokémon Book
+      </h1>
+      <a href="/logout" class="mb-4 text-blue-500 hover:underline">Logout</a>
+    <% } else { %>
+      <h1 class="text-3xl font-bold mb-4">Pokémon Book</h1>
+      <a href="/login" class="mb-4 text-blue-500 hover:underline">Login</a>
     <% } %>
     <input
       id="search-input"
@@ -23,8 +27,9 @@
       class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mb-4"
     ></div>
     <div id="pagination-box" class="flex gap-2 flex-wrap justify-center"></div>
-    <h1>Favorites List</h1>
-    <ul id="favorites-list"></ul>
+    <% if (typeof username !== 'undefined' && username) { %>
+      <%- include('partials/favorites') %>
+    <% } %>
     <script
       src="/js/pagination.js"
       onerror="document.getElementById('result').innerHTML = '<p class=\'text-red-500\'>Error loading Pokémon data. Please try again later.</p>';"

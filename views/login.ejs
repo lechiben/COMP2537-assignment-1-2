@@ -3,22 +3,149 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>Pokémon Book - Authentication</title>
+    <script src="https://cdn.tailwindcss.com"></script>
   </head>
-  <body>
-    <form action="/login" method="POST">
-      <h1>Login</h1>
+  <body class="bg-gray-100 flex flex-col items-center p-4">
+    <h1 class="text-3xl font-bold mb-4">Pokémon Book</h1>
 
-      <label for="username">Username:</label>
-      <input type="text" id="username" name="username" required /><br /><br />
-      <label for="password">Password:</label>
-      <input
-        type="password"
-        id="password"
-        name="password"
-        required
-      /><br /><br />
-      <button type="submit">Login</button>
-    </form>
+    <div class="w-full max-w-md bg-white rounded-lg shadow-md p-6">
+      <!-- Tab navigation -->
+      <div class="flex border-b mb-4">
+        <button
+          id="login-tab"
+          class="py-2 px-4 font-medium text-center focus:outline-none border-b-2 border-blue-500"
+        >
+          Login
+        </button>
+        <button
+          id="register-tab"
+          class="py-2 px-4 font-medium text-center focus:outline-none"
+        >
+          Register
+        </button>
+      </div>
+
+      <!-- Login Form -->
+      <div id="login-form" class="block">
+        <% if (typeof loginError !== 'undefined') { %>
+        <div
+          class="bg-red-100 border border-red-400 text-red-700 px-4 py-2 mb-4 rounded"
+        >
+          <%= loginError %>
+        </div>
+        <% } %>
+        <form action="/login" method="POST">
+          <div class="mb-4">
+            <label for="login-username" class="block text-gray-700 mb-2"
+              >Username:</label
+            >
+            <input
+              type="text"
+              id="login-username"
+              name="username"
+              required
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          <div class="mb-4">
+            <label for="login-password" class="block text-gray-700 mb-2"
+              >Password:</label
+            >
+            <input
+              type="password"
+              id="login-password"
+              name="password"
+              required
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          <button
+            type="submit"
+            class="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+          >
+            Login
+          </button>
+        </form>
+      </div>
+
+      <!-- Register Form -->
+      <div id="register-form" class="hidden">
+        <% if (typeof registerError !== 'undefined') { %>
+        <div
+          class="bg-red-100 border border-red-400 text-red-700 px-4 py-2 mb-4 rounded"
+        >
+          <%= registerError %>
+        </div>
+        <% } %>
+        <form action="/register" method="POST">
+          <div class="mb-4">
+            <label for="register-username" class="block text-gray-700 mb-2"
+              >Username:</label
+            >
+            <input
+              type="text"
+              id="register-username"
+              name="username"
+              required
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          <div class="mb-4">
+            <label for="register-password" class="block text-gray-700 mb-2"
+              >Password:</label
+            >
+            <input
+              type="password"
+              id="register-password"
+              name="password"
+              required
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          <button
+            type="submit"
+            class="w-full bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
+          >
+            Register
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <a href="/" class="mt-4 text-blue-500 hover:underline">Back to Home</a>
+
+    <script>
+      // Tab switching functionality
+      const loginTab = document.getElementById('login-tab');
+      const registerTab = document.getElementById('register-tab');
+      const loginForm = document.getElementById('login-form');
+      const registerForm = document.getElementById('register-form');
+
+      loginTab.addEventListener('click', () => {
+        loginTab.classList.add('border-b-2', 'border-blue-500');
+        registerTab.classList.remove('border-b-2', 'border-blue-500');
+        loginForm.classList.remove('hidden');
+        loginForm.classList.add('block');
+        registerForm.classList.remove('block');
+        registerForm.classList.add('hidden');
+      });
+
+      registerTab.addEventListener('click', () => {
+        registerTab.classList.add('border-b-2', 'border-blue-500');
+        loginTab.classList.remove('border-b-2', 'border-blue-500');
+        registerForm.classList.remove('hidden');
+        registerForm.classList.add('block');
+        loginForm.classList.remove('block');
+        loginForm.classList.add('hidden');
+      });
+
+      // Set active tab based on URL or error message
+      window.onload = function() {
+        <% if (typeof registerError !== 'undefined') { %>
+          registerTab.click();
+        <% } %>
+      };
+    </script>
   </body>
 </html>
