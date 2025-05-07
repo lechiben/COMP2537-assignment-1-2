@@ -1,277 +1,352 @@
-// Create aliases for ID pagination-box and result
-const container = document.getElementById("pagination-box");
-const result = document.getElementById("result");
-const searchInput = document.getElementById("search-input");
+// public/js/pagination.js
+document.addEventListener("DOMContentLoaded", function () {
+  const resultsDiv = document.getElementById("result");
+  const paginationBox = document.getElementById("pagination-box");
+  const searchInput = document.getElementById("search-input");
+  const favoritesListElement = document.getElementById("favorites-list");
 
-// Declare variables
-let currentPage = 1,
-  totalPages = 0,
-  pageStart = 1,
-  maxPagesToShow = 10;
-let allPokemons = [];
-let filteredPokemons = [];
-let userFavorites = [];
-let isLoggedIn = false;
+  const itemsPerPage = 10;
+  let currentPage = 1;
+  let allPokemon = [];
+  let filteredPokemon = [];
+  let favorites = [];
 
-// Check login status
-const checkLoginStatus = () => {
-  fetch("/check-auth", { method: "GET" })
-    .then((response) => response.json())
-    .then((data) => {
-      isLoggedIn = data.isAuthenticated;
-      if (isLoggedIn) {
-        fetchFavorites();
-      }
-      // Check for pending favorite action from redirect
-      const urlParams = new URLSearchParams(window.location.search);
-      const pendingPokemon = urlParams.get("addFavorite");
-      if (pendingPokemon && isLoggedIn) {
-        const pokemon = JSON.parse(decodeURIComponent(pendingPokemon));
-        addToFavorites(pokemon);
-        // Clear query parameter
-        window.history.replaceState(
-          {},
-          document.title,
-          window.location.pathname
-        );
-      }
-    })
-    .catch((error) => console.error("Error checking login status:", error));
-};
+  // Initialize by fetching all Pokémon
+  fetchAllPokemon();
 
-// Function to fetch user's favorites
-const fetchFavorites = () => {
-  fetch("/favorites", { method: "GET" })
-    .then((response) => response.json())
-    .then((data) => {
-      userFavorites = data;
-      const favoriteList = document.getElementById("favorites-list");
-      if (favoriteList) {
-        favoriteList.innerHTML = ""; // Clear the list
-        data.forEach((favorite) => {
-          const li = document.createElement("li");
-          li.innerText = favorite.name;
-          favoriteList.appendChild(li);
-        });
-      }
-    })
-    .catch((error) => console.error("Error fetching favorites:", error));
-};
+  // Add search event listener
+  searchInput.addEventListener("input", function () {
+    filterPokemon();
+  });
 
-// Function to fetch Pokémon and load it to HTML with style
-const fetchPokemon = (page) => {
-  const limit = 10;
-  const offset = (page - 1) * limit;
-  fetch(`https://pokeapi.co/api/v2/pokemon?limit=${limit}&offset=${offset}`)
-    .then((resp) => resp.json())
-    .then((respJSON) => {
-      // Calculate the total number of pages available
-      totalPages = Math.ceil(respJSON.count / limit);
-      // Fetch details for each Pokémon to get their image and ID
-      const fetches = respJSON.results.map((pokemon) =>
-        fetch(pokemon.url)
-          .then((res) => res.json())
-          .then((pokeData) => ({
-            name: pokeData.name,
-            image: pokeData.sprites.other["official-artwork"].front_default,
-            id: pokeData.id,
-          }))
-      );
-      return Promise.all(fetches);
-    })
-    .then((pokemons) => {
-      allPokemons = pokemons;
-      filteredPokemons = pokemons; // Initialize filtered list
-      renderPokemonList(pokemons);
-      updatePagination();
-      if (isLoggedIn) {
-        fetchFavorites(); // Fetch favorites to update button states
-      }
-    })
-    .catch(console.error);
-};
+  /**
+   * Fetch all Pokémon data from the API
+   */
+  function fetchAllPokemon() {
+    fetch("https://pokeapi.co/api/v2/pokemon?limit=151")
+      .then((response) => response.json())
+      .then((data) => {
+        allPokemon = data.results;
+        filteredPokemon = [...allPokemon];
 
-// Function to add Pokémon to favorites
-const addToFavorites = (pokemon) => {
-  if (!isLoggedIn) {
-    // Redirect to login with Pokémon data
-    const redirectUrl = `/login?redirect=${encodeURIComponent(
-      window.location.pathname
-    )}&addFavorite=${encodeURIComponent(JSON.stringify(pokemon))}`;
-    window.location.href = redirectUrl;
-    return;
+        // If user is logged in, fetch favorites
+        if (favoritesListElement) {
+          fetchUserFavorites();
+        }
+
+        renderPagination();
+        loadPage(currentPage);
+      })
+      .catch((error) => {
+        console.error("Error fetching Pokémon:", error);
+        resultsDiv.innerHTML = `<p class="text-red-500 col-span-full">Error loading Pokémon data. Please try again later.</p>`;
+      });
   }
-  fetch("/favorites", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: pokemon.name, pokemonId: pokemon.id }),
-  })
-    .then((response) => response.json())
-    .then((favorites) => {
-      userFavorites = favorites;
-      fetchFavorites(); // Update favorites list
-      renderPokemonList(filteredPokemons); // Re-render to update buttons
-    })
-    .catch((error) => console.error("Error adding favorite:", error));
-};
 
-// Function to remove Pokémon from favorites
-const removeFromFavorites = (pokemonId) => {
-  fetch("/favorites", {
-    method: "DELETE",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ pokemonId }),
-  })
-    .then((response) => response.json())
-    .then((favorites) => {
-      userFavorites = favorites;
-      fetchFavorites(); // Update favorites list
-      renderPokemonList(filteredPokemons); // Re-render to update buttons
-    })
-    .catch((error) => console.error("Error removing favorite:", error));
-};
+  /**
+   * Fetch user's favorites if logged in
+   */
+  function fetchUserFavorites() {
+    fetch("/favorites")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to fetch favorites");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        favorites = data;
+      })
+      .catch((error) => {
+        console.error("Error fetching favorites:", error);
+      });
+  }
 
-// Render Pokémon list
-function renderPokemonList(pokemons) {
-  result.innerHTML = "";
-  pokemons.forEach((pokemon) => {
-    const isFavorite = userFavorites.some(
-      (fav) => fav.pokemonId === pokemon.id
+  /**
+   * Filter Pokémon based on search input
+   */
+  function filterPokemon() {
+    const searchTerm = searchInput.value.toLowerCase();
+
+    if (searchTerm === "") {
+      filteredPokemon = [...allPokemon];
+    } else {
+      filteredPokemon = allPokemon.filter((pokemon) =>
+        pokemon.name.toLowerCase().includes(searchTerm)
+      );
+    }
+
+    currentPage = 1;
+    renderPagination();
+    loadPage(currentPage);
+  }
+
+  /**
+   * Render pagination buttons
+   */
+  function renderPagination() {
+    const totalPages = Math.ceil(filteredPokemon.length / itemsPerPage);
+    paginationBox.innerHTML = "";
+
+    // Previous button
+    if (totalPages > 1) {
+      const prevButton = document.createElement("button");
+      prevButton.textContent = "Previous";
+      prevButton.className =
+        "px-3 py-1 border rounded-md " +
+        (currentPage === 1
+          ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+          : "bg-white hover:bg-gray-100");
+      prevButton.disabled = currentPage === 1;
+      prevButton.addEventListener("click", () => {
+        if (currentPage > 1) {
+          loadPage(currentPage - 1);
+        }
+      });
+      paginationBox.appendChild(prevButton);
+    }
+
+    // Page buttons
+    const maxButtons = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
+    let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+
+    if (endPage - startPage + 1 < maxButtons) {
+      startPage = Math.max(1, endPage - maxButtons + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      const pageButton = document.createElement("button");
+      pageButton.textContent = i;
+      pageButton.className =
+        "px-3 py-1 border rounded-md " +
+        (i === currentPage
+          ? "bg-blue-500 text-white"
+          : "bg-white hover:bg-gray-100");
+      pageButton.addEventListener("click", () => loadPage(i));
+      paginationBox.appendChild(pageButton);
+    }
+
+    // Next button
+    if (totalPages > 1) {
+      const nextButton = document.createElement("button");
+      nextButton.textContent = "Next";
+      nextButton.className =
+        "px-3 py-1 border rounded-md " +
+        (currentPage === totalPages
+          ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+          : "bg-white hover:bg-gray-100");
+      nextButton.disabled = currentPage === totalPages;
+      nextButton.addEventListener("click", () => {
+        if (currentPage < totalPages) {
+          loadPage(currentPage + 1);
+        }
+      });
+      paginationBox.appendChild(nextButton);
+    }
+  }
+
+  /**
+   * Load a specific page of Pokémon
+   */
+  function loadPage(page) {
+    currentPage = page;
+    renderPagination();
+
+    resultsDiv.innerHTML = `<p class="text-gray-500 col-span-full text-center">Loading Pokémon...</p>`;
+
+    const start = (page - 1) * itemsPerPage;
+    const end = Math.min(start + itemsPerPage, filteredPokemon.length);
+    const pokemonToShow = filteredPokemon.slice(start, end);
+
+    fetchPokemonDetails(pokemonToShow);
+  }
+
+  /**
+   * Fetch detailed information for each Pokémon
+   */
+  function fetchPokemonDetails(pokemonList = filteredPokemon) {
+    resultsDiv.innerHTML = "";
+
+    // Check if we have a restricted list (for pagination) or need all
+    const pokemonToFetch = pokemonList.slice(0, itemsPerPage);
+
+    if (pokemonToFetch.length === 0) {
+      resultsDiv.innerHTML = `<p class="text-gray-500 col-span-full text-center">No Pokémon found. Try a different search.</p>`;
+      return;
+    }
+
+    // Create promises for each Pokémon detail fetch
+    const fetchPromises = pokemonToFetch.map((pokemon) =>
+      fetch(pokemon.url)
+        .then((response) => response.json())
+        .catch((error) => {
+          console.error(`Error fetching details for ${pokemon.name}:`, error);
+          return null; // Return null for failed requests
+        })
     );
-    result.innerHTML += `
-      <div class="w-[230px] flex-row gap-4 items-center justify-center relative group">
-        <img src="${
-          pokemon.image
-        }" class="transition-all duration-300 ease-in-out w-full h-auto" />
-        <div class="absolute top-0 left-0 w-full h-full bg-gray-800 opacity-0 group-hover:opacity-50 transition-opacity duration-300"></div>
-        <div class="font-light flex flex-col justify-center items-center">
-          <div class="font-semibold text-center text-wrap capitalize">${
-            pokemon.name
-          }</div>
-          <button class="absolute bottom-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 px-2 py-1 rounded-lg text-white ${
-            isFavorite
-              ? "bg-red-500 hover:bg-red-700"
-              : "bg-blue-500 hover:bg-blue-700"
-          }" onclick='${
-      isFavorite
-        ? `removeFromFavorites(${pokemon.id})`
-        : `addToFavorites(${JSON.stringify(pokemon)})`
-    }'>
-            ${isFavorite ? "Remove from Favorites" : "Add to Favorites"}
+
+    // Wait for all fetches to complete
+    Promise.all(fetchPromises)
+      .then((pokemonDetails) => {
+        // Filter out any null results (failed fetches)
+        const validPokemonDetails = pokemonDetails.filter(
+          (detail) => detail !== null
+        );
+
+        // Display each Pokémon card
+        validPokemonDetails.forEach((pokemon) => {
+          createPokemonCard(pokemon);
+        });
+      })
+      .catch((error) => {
+        console.error("Error fetching Pokémon details:", error);
+        resultsDiv.innerHTML = `<p class="text-red-500 col-span-full text-center">Error loading Pokémon details. Please try again later.</p>`;
+      });
+  }
+
+  /**
+   * Create a card for a single Pokémon
+   */
+  function createPokemonCard(pokemon) {
+    const card = document.createElement("div");
+    card.className =
+      "bg-white rounded-lg shadow-md overflow-hidden flex flex-col";
+    card.dataset.pokemonId = pokemon.id;
+
+    // Check if user is logged in by looking for favorites-list element
+    const isLoggedIn = favoritesListElement !== null;
+
+    // Check if this Pokémon is already favorited
+    const isFavorited =
+      isLoggedIn &&
+      favorites.some((fav) => parseInt(fav.pokemonId) === pokemon.id);
+
+    // Create the card HTML
+    card.innerHTML = `
+      <div class="relative">
+        <img 
+          src="${
+            pokemon.sprites.front_default || "https://via.placeholder.com/96"
+          }" 
+          alt="${pokemon.name}" 
+          class="w-full h-32 object-contain bg-gray-100"
+        >
+        ${
+          isLoggedIn
+            ? `
+          <button class="favorite-btn absolute top-2 right-2 text-xl ${
+            isFavorited ? "text-red-500" : ""
+          }" 
+                  data-id="${pokemon.id}" 
+                  data-name="${pokemon.name}">
+            ${isFavorited ? "♥" : "♡"}
           </button>
+        `
+            : ""
+        }
+      </div>
+      <div class="p-3">
+        <h3 class="font-bold text-lg capitalize">${pokemon.name}</h3>
+        <div class="flex gap-1 mt-1">
+          ${pokemon.types
+            .map(
+              (type) =>
+                `<span class="px-2 py-1 text-xs rounded-full bg-gray-200">${type.type.name}</span>`
+            )
+            .join("")}
         </div>
       </div>
     `;
-  });
-}
 
-// Search/filter function
-searchInput.addEventListener("input", function () {
-  const filter = searchInput.value.toLowerCase();
-  filteredPokemons = allPokemons.filter((pokemon) =>
-    pokemon.name.toLowerCase().includes(filter)
-  );
-  renderPokemonList(filteredPokemons);
-});
+    // Add event listener to favorite button if user is logged in
+    if (isLoggedIn) {
+      const favoriteBtn = card.querySelector(".favorite-btn");
+      favoriteBtn.addEventListener("click", toggleFavorite);
+    }
 
-// Function to create buttons
-const createButton = (
-  text,
-  onClick,
-  disabled = false,
-  classes = "px-4 py-2 bg-red-500 text-white rounded-lg transition-all duration-300 hover:bg-black hover:text-white"
-) => {
-  const btn = document.createElement("button");
-  btn.innerText = text;
-  btn.className = classes;
-  btn.disabled = disabled;
-  btn.addEventListener("click", onClick);
-  return btn;
-};
-
-// Function to create pagination
-const createPagination = () => {
-  container.innerHTML = "";
-
-  // Create first button when page > 1
-  if (currentPage > 1) {
-    container.append(
-      createButton("First", () => {
-        currentPage = 1;
-        pageStart = 1;
-        fetchPokemon(currentPage);
-      })
-    );
+    resultsDiv.appendChild(card);
   }
 
-  // Create previous button when page > 1
-  if (currentPage > 1) {
-    container.append(
-      createButton("Previous", () => {
-        currentPage--;
-        if (currentPage < pageStart) {
-          pageStart = Math.max(1, currentPage - 4);
-        }
-        fetchPokemon(currentPage);
-      })
-    );
-  }
+  /**
+   * Toggle favorite status for a Pokémon
+   */
+  function toggleFavorite(event) {
+    event.preventDefault();
+    const button = event.currentTarget;
+    const pokemonId = button.dataset.id;
+    const pokemonName = button.dataset.name;
+    const isFavorited = button.textContent.trim() === "♥";
 
-  // Create page buttons (1-10)
-  const pageEnd = Math.min(pageStart + maxPagesToShow - 1, totalPages);
-  for (let i = pageStart; i <= pageEnd; i++) {
-    container.append(
-      createButton(
-        i.toString(),
-        () => {
-          currentPage = i;
-          if (i >= pageEnd - 1 && pageEnd < totalPages) {
-            pageStart = Math.min(totalPages - maxPagesToShow + 1, i);
+    if (isFavorited) {
+      // Find the favorite ID
+      const favorite = favorites.find(
+        (fav) => parseInt(fav.pokemonId) === parseInt(pokemonId)
+      );
+      if (!favorite) return;
+
+      // Remove from favorites
+      fetch(`/favorites/${favorite._id}`, {
+        method: "DELETE",
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Failed to remove favorite");
           }
-          fetchPokemon(currentPage);
+          return response.json();
+        })
+        .then((data) => {
+          // Update UI
+          button.textContent = "♡";
+          button.classList.remove("text-red-500");
+
+          // Update local favorites list
+          favorites = favorites.filter((fav) => fav._id !== favorite._id);
+
+          // Refresh favorites list if it exists
+          if (typeof fetchFavorites === "function") {
+            fetchFavorites();
+          }
+        })
+        .catch((error) => {
+          console.error("Error removing favorite:", error);
+          alert("Failed to remove from favorites. Please try again.");
+        });
+    } else {
+      // Add to favorites
+      fetch("/favorites", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-        false,
-        `px-4 py-2 ${
-          currentPage === i
-            ? "bg-blue-400 text-white"
-            : "bg-gray-200 text-gray-700"
-        } rounded-full hover:bg-blue-500 hover:text-white`
-      )
-    );
-  }
-
-  // Next button
-  if (currentPage < totalPages) {
-    container.append(
-      createButton("Next", () => {
-        currentPage++;
-        if (currentPage > pageEnd) {
-          pageStart = Math.min(totalPages - maxPagesToShow + 1, currentPage);
-        }
-        fetchPokemon(currentPage);
+        body: JSON.stringify({
+          pokemonId,
+          name: pokemonName,
+        }),
       })
-    );
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Failed to add favorite");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          // Update UI
+          button.textContent = "♥";
+          button.classList.add("text-red-500");
+
+          // Update local favorites list
+          favorites.push(data);
+
+          // Refresh favorites list if it exists
+          if (typeof fetchFavorites === "function") {
+            fetchFavorites();
+          }
+        })
+        .catch((error) => {
+          console.error("Error adding favorite:", error);
+          alert("Failed to add to favorites. Please try again.");
+        });
+    }
   }
-
-  // Last button
-  if (currentPage < totalPages) {
-    container.append(
-      createButton("Last", () => {
-        currentPage = totalPages;
-        pageStart = Math.max(1, totalPages - maxPagesToShow + 1);
-        fetchPokemon(currentPage);
-      })
-    );
-  }
-};
-
-// Update pagination
-const updatePagination = () => createPagination();
-
-// Expose functions to global scope for inline onclick
-window.addToFavorites = addToFavorites;
-window.removeFromFavorites = removeFromFavorites;
-
-// Initial fetch
-checkLoginStatus();
-fetchPokemon(1);
+});
