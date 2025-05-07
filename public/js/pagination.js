@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const searchInput = document.getElementById("search-input");
   const favoritesListElement = document.getElementById("favorites-list");
 
-  const itemsPerPage = 10;
+  const itemsPerPage = 12;
   let currentPage = 1;
   let allPokemon = [];
   let filteredPokemon = [];
@@ -226,9 +226,7 @@ document.addEventListener("DOMContentLoaded", function () {
     card.innerHTML = `
       <div class="relative">
         <img 
-          src="${
-            pokemon.sprites.front_default || "https://via.placeholder.com/96"
-          }" 
+          src="${pokemon.sprites.front_default}" 
           alt="${pokemon.name}" 
           class="w-full h-32 object-contain bg-gray-100"
         >
