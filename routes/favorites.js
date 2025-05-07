@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const favoritesModel = require("../models/favorites");
+const favoritesModel = require("../models/user.js");
 
 // Authentication middleware
 const isAuthenticated = (req, res, next) => {
