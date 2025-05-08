@@ -29,7 +29,7 @@ router.get("/", async (req, res) => {
 // Add a new favorite
 router.post("/", async (req, res) => {
   try {
-    const { pokemonId, name } = req.body;
+    const { pokemonId, name, imageUrl } = req.body;
 
     // Check if already favorited
     const existingFavorite = await Favorite.findOne({
@@ -46,6 +46,7 @@ router.post("/", async (req, res) => {
       userId: req.session.userId,
       pokemonId,
       name,
+      imageUrl,
     });
 
     await newFavorite.save();
