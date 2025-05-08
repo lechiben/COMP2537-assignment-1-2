@@ -2,6 +2,7 @@
 const express = require("express");
 const router = express.Router();
 const Favorite = require("../models/Favorite");
+const timelineService = require("../services/timelineService");
 
 // Middleware to check if user is authenticated
 const isAuthenticated = (req, res, next) => {
@@ -48,6 +49,10 @@ router.post("/", async (req, res) => {
     });
 
     await newFavorite.save();
+
+    // Log the favorite_added activity
+    await timelineService.logFavoriteAdded(req.session.userId, newFavorite);
+
     res.status(201).json(newFavorite);
   } catch (err) {
     console.error("Error adding favorite:", err);
@@ -67,7 +72,12 @@ router.delete("/:id", async (req, res) => {
       return res.status(404).json({ error: "Favorite not found" });
     }
 
+    // Log the favorite_removed activity before deleting
+    await timelineService.logFavoriteRemoved(req.session.userId, favorite);
+
+    // Delete the favorite
     await favorite.deleteOne();
+
     res.json({ message: "Favorite removed successfully" });
   } catch (err) {
     console.error("Error removing favorite:", err);

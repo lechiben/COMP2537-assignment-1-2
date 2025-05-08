@@ -3,6 +3,7 @@ const express = require("express");
 const router = express.Router();
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
+const timelineService = require("../services/timelineService");
 
 // Route for home page
 router.get("/", (req, res) => {
@@ -48,6 +49,12 @@ router.post("/login", async (req, res) => {
     req.session.userId = user._id;
     req.session.username = user.username;
 
+    // Log the login activity
+    await timelineService.logLogin(user._id, {
+      ip: req.ip,
+      userAgent: req.headers["user-agent"],
+    });
+
     // Redirect to home page
     res.redirect("/");
   } catch (err) {
@@ -87,6 +94,12 @@ router.post("/register", async (req, res) => {
     req.session.userId = newUser._id;
     req.session.username = newUser.username;
 
+    // Log the registration activity
+    await timelineService.logRegister(newUser._id, {
+      ip: req.ip,
+      userAgent: req.headers["user-agent"],
+    });
+
     // Redirect to home page
     res.redirect("/");
   } catch (err) {
@@ -97,13 +110,33 @@ router.post("/register", async (req, res) => {
 });
 
 // Logout route
-router.get("/logout", (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      console.error("Logout error:", err);
+router.get("/logout", async (req, res) => {
+  try {
+    // Log the logout if user is authenticated
+    if (req.session.isAuthenticated && req.session.userId) {
+      await timelineService.logLogout(req.session.userId, {
+        ip: req.ip,
+        userAgent: req.headers["user-agent"],
+      });
     }
-    res.redirect("/");
-  });
+
+    // Destroy session
+    req.session.destroy((err) => {
+      if (err) {
+        console.error("Logout error:", err);
+      }
+      res.redirect("/");
+    });
+  } catch (err) {
+    console.error("Logout timeline error:", err);
+    // Still destroy the session even if timeline logging fails
+    req.session.destroy((err) => {
+      if (err) {
+        console.error("Logout error:", err);
+      }
+      res.redirect("/");
+    });
+  }
 });
 
 // For backward compatibility - redirect old routes to new combined auth page
