@@ -45,10 +45,12 @@ app.use(express.json());
 // Import route files
 const authRoutes = require("./routes/auth");
 const favoritesRoutes = require("./routes/favorites");
+const timelineRoutes = require("./routes/timeline");
 
 // Use route files
 app.use("/", authRoutes);
 app.use("/favorites", favoritesRoutes);
+app.use("/timeline", timelineRoutes);
 
 // Start server after connecting to MongoDB
 (async () => {
