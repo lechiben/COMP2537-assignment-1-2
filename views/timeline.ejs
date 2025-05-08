@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Activity Timeline - Pokémon Book</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex flex-col items-center p-4">
+  <h1 class="text-3xl font-bold mb-2">Your Activity Timeline</h1>
+  <p class="text-gray-600 mb-6">Track your interactions with Pokémon Book</p>
+  
+  <div class="w-full max-w-3xl">
+    <div class="flex justify-between items-center mb-6">
+      <a href="/" class="text-blue-500 hover:underline">← Back to Home</a>
+      <h2 class="text-xl font-semibold"><%= username %>'s Activities</h2>
+    </div>
+    
+    <% if (timeline && timeline.length > 0) { %>
+      <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div class="relative">
+          <!-- Timeline Line -->
+          <div class="absolute left-5 top-0 bottom-0 w-0.5 bg-gray-200"></div>
+          
+          <!-- Timeline Items -->
+          <% timeline.forEach(function(item) { %>
+            <div class="relative pl-10 pb-8">
+              <!-- Timeline Dot -->
+              <% let dotColor = 'bg-gray-400'; %>
+              <% if (item.action === 'login') { dotColor = 'bg-green-500'; } %>
+              <% if (item.action === 'register') { dotColor = 'bg-purple-500'; } %>
+              <% if (item.action === 'logout') { dotColor = 'bg-yellow-500'; } %>
+              <% if (item.action === 'favorite_added') { dotColor = 'bg-red-500'; } %>
+              <% if (item.action === 'favorite_removed') { dotColor = 'bg-blue-500'; } %>
+              
+              <div class="absolute left-3 top-1.5 h-4 w-4 rounded-full <%= dotColor %> border-4 border-white shadow-sm"></div>
+              
+              <!-- Timeline Content -->
+              <div class="flex flex-col">
+                <div class="flex items-baseline">
+                  <% let actionText = 'Activity'; %>
+                  <% let actionIcon = '🔄'; %>
+                  
+                  <% if (item.action === 'login') { 
+                    actionText = 'Logged in';
+                    actionIcon = '🔐';
+                  } %>
+                  <% if (item.action === 'register') { 
+                    actionText = 'Registered account';
+                    actionIcon = '✨';
+                  } %>
+                  <% if (item.action === 'logout') { 
+                    actionText = 'Logged out';
+                    actionIcon = '👋';
+                  } %>
+                  <% if (item.action === 'favorite_added') { 
+                    actionText = 'Added to favorites';
+                    actionIcon = '❤️';
+                  } %>
+                  <% if (item.action === 'favorite_removed') { 
+                    actionText = 'Removed from favorites';
+                    actionIcon = '💔';
+                  } %>
+                  
+                  <h3 class="text-lg font-medium"><%= actionIcon %> <%= actionText %></h3>
+                  <span class="ml-2 text-sm text-gray-500">
+                    <%= new Date(item.timestamp).toLocaleString() %>
+                  </span>
+                </div>
+                
+                <% if (item.action === 'favorite_added' || item.action === 'favorite_removed') { %>
+                  <div class="mt-1 ml-1 text-gray-700">
+                    Pokémon: <span class="font-medium capitalize"><%= item.details.pokemonName %></span>
+                    <span class="text-xs text-gray-500">(ID: <%= item.details.pokemonId %>)</span>
+                  </div>
+                <% } %>
+              </div>
+            </div>
+          <% }); %>
+        </div>
+      </div>
+      
+      <!-- Pagination -->
+      <div class="flex justify-center gap-2 mt-4">
+        <% if (currentPage > 1) { %>
+          <a href="/timeline/view?page=<%= currentPage - 1 %>&limit=<%= limit %>" class="px-3 py-1 bg-white border rounded-md hover:bg-gray-100">Previous</a>
+        <% } else { %>
+          <button disabled class="px-3 py-1 bg-gray-200 text-gray-500 border rounded-md cursor-not-allowed">Previous</button>
+        <% } %>
+        
+        <span class="px-3 py-1 bg-blue-500 text-white border rounded-md"><%= currentPage %></span>
+        
+        <% if (timeline.length === limit) { %>
+          <a href="/timeline/view?page=<%= currentPage + 1 %>&limit=<%= limit %>" class="px-3 py-1 bg-white border rounded-md hover:bg-gray-100">Next</a>
+        <% } else { %>
+          <button disabled class="px-3 py-1 bg-gray-200 text-gray-500 border rounded-md cursor-not-allowed">Next</button>
+        <% } %>
+      </div>
+    <% } else { %>
+      <div class="bg-white rounded-lg shadow-md p-6 text-center">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">No activity yet</h3>
+        <p class="mt-1 text-sm text-gray-500">Your activity will appear here as you use Pokémon Book.</p>
+      </div>
+    <% } %>
+  </div>
+</body>
+</html>
