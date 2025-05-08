@@ -1,71 +1,140 @@
 <!-- views/partials/favorites.ejs -->
 <div class="mt-6 mb-6 w-full max-w-3xl bg-white rounded-lg shadow-md p-6">
   <h2 class="text-2xl font-semibold mb-4">Your Favorites</h2>
-  <ul id="favorites-list" class="list-disc pl-6 empty:before:content-['No favorites yet. Click the heart icon on a Pokémon to add it!'] empty:before:text-gray-500 empty:before:italic"></ul>
+
+  <!-- Loading state -->
+  <div id="favorites-loading" class="text-center py-4">
+    <div
+      class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"
+    ></div>
+    <p class="mt-2 text-gray-500">Loading your favorites...</p>
+  </div>
+
+  <!-- Empty state -->
+  <div id="favorites-empty" class="hidden text-center py-4">
+    <p class="text-gray-500 italic">
+      No favorites yet. Click the heart icon on a Pokémon to add it!
+    </p>
+  </div>
+
+  <!-- Favorites grid -->
+  <div
+    id="favorites-grid"
+    class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-4 hidden"
+  ></div>
 </div>
 
 <script>
+  // Make this function available globally so pagination.js can call it
+  window.fetchFavorites = fetchFavorites;
+
   // Fetch favorites when the page loads
-  document.addEventListener('DOMContentLoaded', fetchFavorites);
+  document.addEventListener("DOMContentLoaded", fetchFavorites);
 
   function fetchFavorites() {
-    fetch('/favorites')
-      .then(response => {
+    const favoritesLoading = document.getElementById("favorites-loading");
+    const favoritesEmpty = document.getElementById("favorites-empty");
+    const favoritesGrid = document.getElementById("favorites-grid");
+
+    // Show loading state
+    favoritesLoading.classList.remove("hidden");
+    favoritesEmpty.classList.add("hidden");
+    favoritesGrid.classList.add("hidden");
+
+    fetch("/favorites")
+      .then((response) => {
         if (!response.ok) {
-          throw new Error('Failed to fetch favorites');
+          throw new Error("Failed to fetch favorites");
         }
         return response.json();
       })
-      .then(data => {
-        displayFavorites(data);
+      .then((favorites) => {
+        // Hide loading state
+        favoritesLoading.classList.add("hidden");
+
+        if (favorites.length === 0) {
+          // Show empty state if no favorites
+          favoritesEmpty.classList.remove("hidden");
+          return;
+        }
+
+        // Show favorites grid and populate it
+        favoritesGrid.classList.remove("hidden");
+        displayFavorites(favorites, favoritesGrid);
       })
-      .catch(error => {
-        console.error('Error fetching favorites:', error);
+      .catch((error) => {
+        console.error("Error fetching favorites:", error);
+
+        // Hide loading state and show error
+        favoritesLoading.classList.add("hidden");
+        favoritesEmpty.textContent =
+          "Failed to load favorites. Please try again later.";
+        favoritesEmpty.classList.remove("hidden");
       });
   }
 
-  function displayFavorites(favorites) {
-    const favoritesList = document.getElementById('favorites-list');
-    favoritesList.innerHTML = '';
-    
-    if (favorites.length === 0) {
-      // The empty state is handled by CSS
-      return;
-    }
-    
-    favorites.forEach(favorite => {
-      const listItem = document.createElement('li');
-      listItem.className = 'mb-2 flex items-center justify-between';
-      
-      const nameSpan = document.createElement('span');
-      nameSpan.textContent = favorite.name.charAt(0).toUpperCase() + favorite.name.slice(1);
-      
-      const removeButton = document.createElement('button');
-      removeButton.textContent = '×';
-      removeButton.className = 'ml-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 focus:outline-none';
-      removeButton.addEventListener('click', () => removeFavorite(favorite._id));
-      
-      listItem.appendChild(nameSpan);
-      listItem.appendChild(removeButton);
-      favoritesList.appendChild(listItem);
+  function displayFavorites(favorites, container) {
+    // Clear existing items
+    container.innerHTML = "";
+
+    // Create a card for each favorite
+    favorites.forEach((favorite) => {
+      const card = document.createElement("div");
+      card.className =
+        "bg-white border rounded-lg shadow overflow-hidden flex flex-col";
+
+      // Default image if none provided
+      const imageUrl =
+        favorite.imageUrl ||
+        "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png";
+
+      card.innerHTML = `
+        <div class="relative">
+          <img 
+            src="${imageUrl}" 
+            alt="${favorite.name}" 
+            class="w-full h-24 object-contain bg-gray-100"
+            onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png';"
+          >
+        </div>
+        <div class="p-2 flex items-center justify-between">
+          <span class="font-medium capitalize text-sm">${favorite.name}</span>
+          <button 
+            class="remove-favorite-btn text-red-500 rounded-full hover:bg-red-100 w-6 h-6 flex items-center justify-center"
+            data-id="${favorite._id}"
+            title="Remove from favorites"
+          >
+            ×
+          </button>
+        </div>
+      `;
+
+      // Add event listener to remove button
+      const removeButton = card.querySelector(".remove-favorite-btn");
+      removeButton.addEventListener("click", () =>
+        removeFavorite(favorite._id)
+      );
+
+      container.appendChild(card);
     });
   }
 
   function removeFavorite(id) {
     fetch(`/favorites/${id}`, {
-      method: 'DELETE',
+      method: "DELETE",
     })
-      .then(response => {
+      .then((response) => {
         if (!response.ok) {
-          throw new Error('Failed to remove favorite');
+          throw new Error("Failed to remove favorite");
         }
         return response.json();
       })
       .then(() => {
         fetchFavorites(); // Refresh the list
       })
-      .catch(error => {
-        console.error('Error removing favorite:', error);
+      .catch((error) => {
+        console.error("Error removing favorite:", error);
+        alert("Failed to remove from favorites. Please try again.");
       });
   }
 </script>

@@ -3,7 +3,9 @@ document.addEventListener("DOMContentLoaded", function () {
   const resultsDiv = document.getElementById("result");
   const paginationBox = document.getElementById("pagination-box");
   const searchInput = document.getElementById("search-input");
-  const favoritesListElement = document.getElementById("favorites-list");
+  const favoritesListElement =
+    document.getElementById("favorites-list") ||
+    document.getElementById("favorites-grid");
 
   const itemsPerPage = 12;
   let currentPage = 1;
@@ -56,6 +58,7 @@ document.addEventListener("DOMContentLoaded", function () {
       })
       .then((data) => {
         favorites = data;
+        console.log("Fetched favorites:", favorites); // Debug log to check if favorites are fetched
       })
       .catch((error) => {
         console.error("Error fetching favorites:", error);
@@ -214,30 +217,45 @@ document.addEventListener("DOMContentLoaded", function () {
       "bg-white rounded-lg shadow-md overflow-hidden flex flex-col";
     card.dataset.pokemonId = pokemon.id;
 
-    // Check if user is logged in by looking for favorites-list element
-    const isLoggedIn = favoritesListElement !== null;
+    // Check if the user is logged in - we'll use the presence of session username in the HTML
+    const userElement = document.querySelector(
+      'h1[class*="text-3xl font-bold"]'
+    );
+    const isLoggedIn =
+      userElement && userElement.textContent.includes("Welcome to");
+
+    console.log("Is logged in:", isLoggedIn); // Debug log
 
     // Check if this Pokémon is already favorited
     const isFavorited =
       isLoggedIn &&
       favorites.some((fav) => parseInt(fav.pokemonId) === pokemon.id);
 
+    // Get image URL - prefer front_default, fallback to official artwork
+    const imageUrl =
+      pokemon.sprites.front_default ||
+      (pokemon.sprites.other &&
+        pokemon.sprites.other["official-artwork"] &&
+        pokemon.sprites.other["official-artwork"].front_default) ||
+      "https://via.placeholder.com/96";
+
     // Create the card HTML
-    card.innerHTML = `
+    const cardHTML = `
       <div class="relative">
         <img 
-          src="${pokemon.sprites.front_default}" 
+          src="${imageUrl}" 
           alt="${pokemon.name}" 
           class="w-full h-32 object-contain bg-gray-100"
         >
         ${
           isLoggedIn
             ? `
-          <button class="favorite-btn absolute top-2 right-2 text-xl ${
-            isFavorited ? "text-red-500" : ""
+          <button class="favorite-btn absolute top-2 right-2 text-2xl ${
+            isFavorited ? "text-red-500" : "text-gray-400 hover:text-red-300"
           }" 
                   data-id="${pokemon.id}" 
-                  data-name="${pokemon.name}">
+                  data-name="${pokemon.name}"
+                  data-image="${imageUrl}">
             ${isFavorited ? "♥" : "♡"}
           </button>
         `
@@ -257,10 +275,14 @@ document.addEventListener("DOMContentLoaded", function () {
       </div>
     `;
 
+    card.innerHTML = cardHTML;
+
     // Add event listener to favorite button if user is logged in
     if (isLoggedIn) {
       const favoriteBtn = card.querySelector(".favorite-btn");
-      favoriteBtn.addEventListener("click", toggleFavorite);
+      if (favoriteBtn) {
+        favoriteBtn.addEventListener("click", toggleFavorite);
+      }
     }
 
     resultsDiv.appendChild(card);
@@ -274,7 +296,15 @@ document.addEventListener("DOMContentLoaded", function () {
     const button = event.currentTarget;
     const pokemonId = button.dataset.id;
     const pokemonName = button.dataset.name;
+    const imageUrl = button.dataset.image;
     const isFavorited = button.textContent.trim() === "♥";
+
+    console.log("Toggle favorite:", {
+      pokemonId,
+      pokemonName,
+      imageUrl,
+      isFavorited,
+    }); // Debug log
 
     if (isFavorited) {
       // Find the favorite ID
@@ -297,13 +327,14 @@ document.addEventListener("DOMContentLoaded", function () {
           // Update UI
           button.textContent = "♡";
           button.classList.remove("text-red-500");
+          button.classList.add("text-gray-400", "hover:text-red-300");
 
           // Update local favorites list
           favorites = favorites.filter((fav) => fav._id !== favorite._id);
 
           // Refresh favorites list if it exists
-          if (typeof fetchFavorites === "function") {
-            fetchFavorites();
+          if (typeof window.fetchFavorites === "function") {
+            window.fetchFavorites();
           }
         })
         .catch((error) => {
@@ -320,6 +351,7 @@ document.addEventListener("DOMContentLoaded", function () {
         body: JSON.stringify({
           pokemonId,
           name: pokemonName,
+          imageUrl,
         }),
       })
         .then((response) => {
@@ -331,14 +363,15 @@ document.addEventListener("DOMContentLoaded", function () {
         .then((data) => {
           // Update UI
           button.textContent = "♥";
+          button.classList.remove("text-gray-400", "hover:text-red-300");
           button.classList.add("text-red-500");
 
           // Update local favorites list
           favorites.push(data);
 
           // Refresh favorites list if it exists
-          if (typeof fetchFavorites === "function") {
-            fetchFavorites();
+          if (typeof window.fetchFavorites === "function") {
+            window.fetchFavorites();
           }
         })
         .catch((error) => {
@@ -347,4 +380,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
   }
+
+  // Export some functions to global scope for other scripts to use
+  window.fetchUserFavorites = fetchUserFavorites;
 });
