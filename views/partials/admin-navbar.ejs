@@ -1,89 +1,101 @@
-<!-- views/partials/admin-navbar.ejs with DaisyUI -->
-<div class="navbar bg-base-200 shadow-lg">
+<!-- views/partials/admin-navbar.ejs with Enhanced DaisyUI -->
+<div class="navbar bg-gradient-to-r from-primary to-secondary text-primary-content shadow-lg">
   <div class="navbar-start">
     <div class="dropdown">
-      <label tabindex="0" class="btn btn-ghost lg:hidden">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-5 w-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M4 6h16M4 12h8m-8 6h16"
-          />
+      <label tabindex="0" class="btn btn-circle btn-ghost lg:hidden">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16" />
         </svg>
       </label>
-      <ul
-        tabindex="0"
-        class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52"
-      >
-        <li><a href="/admin">Dashboard</a></li>
-        <li><a href="/admin/users">Manage Users</a></li>
-        <li><a href="/">Back to Site</a></li>
+      <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 text-base-content rounded-box w-52">
+        <li>
+          <a href="/admin" class="flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+            </svg>
+            Dashboard
+          </a>
+        </li>
+        <li>
+          <a href="/admin/users" class="flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+            </svg>
+            Manage Users
+          </a>
+        </li>
+        <div class="divider my-1"></div>
+        <li>
+          <a href="/" class="flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12"></path>
+            </svg>
+            Back to Site
+          </a>
+        </li>
       </ul>
     </div>
+    
     <a href="/admin" class="btn btn-ghost normal-case text-xl">
-      <svg
-        class="h-8 w-8 mr-2"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-        ></path>
-      </svg>
-      Pokémon Admin
+      <div class="avatar">
+        <div class="w-10 rounded-full bg-base-100 p-1 mr-2">
+          <svg class="h-8 w-8 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="9" stroke-width="2.5" />
+            <circle cx="12" cy="12" r="3" stroke-width="2.5" />
+            <line x1="12" y1="3" x2="12" y2="9" stroke-width="2.5" />
+          </svg>
+        </div>
+      </div>
+      <span class="font-bold">Pokémon Admin</span>
     </a>
   </div>
 
   <div class="navbar-center hidden lg:flex">
-    <ul class="menu menu-horizontal px-1">
-      <li><a href="/admin">Dashboard</a></li>
-      <li><a href="/admin/users">Manage Users</a></li>
+    <ul class="menu menu-horizontal px-1 bg-opacity-20 backdrop-blur-sm rounded-box">
+      <li><a href="/admin" class="btn btn-ghost btn-sm rounded-btn">Dashboard</a></li>
+      <li><a href="/admin/users" class="btn btn-ghost btn-sm rounded-btn">Manage Users</a></li>
     </ul>
   </div>
 
   <div class="navbar-end">
-    <a href="/" class="btn btn-ghost btn-sm">
-      <svg
-        class="h-4 w-4 mr-1"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-        ></path>
+    <a href="/" class="btn btn-ghost btn-sm mr-2 text-primary-content">
+      <svg class="h-5 w-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
       </svg>
       Back to Site
     </a>
+    
     <div class="dropdown dropdown-end">
-      <label
-        tabindex="0"
-        class="btn btn-ghost btn-circle avatar placeholder ml-2"
-      >
-        <div class="bg-neutral-focus text-neutral-content rounded-full w-10">
-          <span><%= username ? username.charAt(0).toUpperCase() : 'A' %></span>
+      <div tabindex="0" class="btn btn-ghost btn-circle avatar online">
+        <div class="w-10 rounded-full ring ring-accent ring-offset-base-100 ring-offset-2">
+          <div class="bg-accent text-accent-content w-full h-full flex items-center justify-center font-bold text-xl">
+            <%= username ? username.charAt(0).toUpperCase() : 'A' %>
+          </div>
         </div>
-      </label>
-      <ul
-        tabindex="0"
-        class="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52"
-      >
-        <li class="p-2 text-xs opacity-70">Logged in as <%= username %></li>
-        <li><a href="/logout">Logout</a></li>
+      </div>
+      <ul tabindex="0" class="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
+        <li class="p-2 text-xs opacity-70 text-center font-semibold border-b">
+          <div class="flex flex-col items-center">
+            <span class="text-base">Logged in as</span>
+            <span class="text-primary font-bold"><%= username %></span>
+          </div>
+        </li>
+        <li class="mt-2">
+          <a href="/admin/users" class="flex justify-between">
+            Manage Users
+            <span class="badge badge-accent">Admin</span>
+          </a>
+        </li>
+        <li><a href="/timeline/view">View Activity</a></li>
+        <div class="divider my-0"></div>
+        <li>
+          <a href="/logout" class="flex items-center text-error">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            Logout
+          </a>
+        </li>
       </ul>
     </div>
   </div>
