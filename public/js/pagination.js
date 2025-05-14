@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", function () {
    * Fetch all Pokémon data from the API
    */
   function fetchAllPokemon() {
-    fetch("https://pokeapi.co/api/v2/pokemon?limit=151")
+    fetch("https://pokeapi.co/api/v2/pokemon?limit=1302")
       .then((response) => response.json())
       .then((data) => {
         allPokemon = data.results;

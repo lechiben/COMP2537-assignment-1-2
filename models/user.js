@@ -12,9 +12,17 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  isAdmin: {
+    type: Boolean,
+    default: false,
+  },
   createdAt: {
     type: Date,
     default: Date.now,
+  },
+  lastLogin: {
+    type: Date,
+    default: null,
   },
 });
 
