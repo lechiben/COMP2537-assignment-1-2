@@ -1,18 +1,35 @@
-<!-- views/partials/favorites.ejs with DaisyUI -->
+<!-- views/partials/favorites.ejs with Enhanced DaisyUI Styling -->
 <div class="mt-6 mb-6 w-full max-w-3xl">
-  <div class="card bg-base-100 shadow-xl">
+  <div class="card bg-base-100 shadow-xl border-t-4 border-accent">
     <div class="card-body">
-      <h2 class="card-title">Your Favorites</h2>
+      <h2 class="card-title text-xl flex items-center gap-2">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-6 w-6 text-accent"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
+            clip-rule="evenodd"
+          />
+        </svg>
+        Your Favorites
+      </h2>
 
       <!-- Loading state -->
-      <div id="favorites-loading" class="flex justify-center py-4">
-        <span class="loading loading-spinner loading-md"></span>
-        <p class="ml-2">Loading your favorites...</p>
+      <div
+        id="favorites-loading"
+        class="flex flex-col items-center justify-center py-8"
+      >
+        <span class="loading loading-spinner loading-lg text-primary"></span>
+        <p class="mt-3 text-base-content/70">Loading your favorites...</p>
       </div>
 
       <!-- Empty state -->
-      <div id="favorites-empty" class="hidden py-4">
-        <div class="alert">
+      <div id="favorites-empty" class="hidden py-6">
+        <div class="alert bg-base-200">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -26,10 +43,12 @@
               d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
             ></path>
           </svg>
-          <span
-            >No favorites yet. Click the heart icon on a Pokémon to add
-            it!</span
-          >
+          <div>
+            <h3 class="font-bold">No favorites yet!</h3>
+            <div class="text-sm">
+              Click the heart icon on a Pokémon to add it to your collection.
+            </div>
+          </div>
         </div>
       </div>
 
@@ -49,6 +68,34 @@
   // Fetch favorites when the page loads
   document.addEventListener("DOMContentLoaded", fetchFavorites);
 
+  // Pokémon type colors for card theming
+  const typeColors = {
+    normal: "#A8A77A",
+    fire: "#EE8130",
+    water: "#6390F0",
+    electric: "#F7D02C",
+    grass: "#7AC74C",
+    ice: "#96D9D6",
+    fighting: "#C22E28",
+    poison: "#A33EA1",
+    ground: "#E2BF65",
+    flying: "#A98FF3",
+    psychic: "#F95587",
+    bug: "#A6B91A",
+    rock: "#B6A136",
+    ghost: "#735797",
+    dragon: "#6F35FC",
+    dark: "#705746",
+    steel: "#B7B7CE",
+    fairy: "#D685AD",
+  };
+
+  // Default Pokémon types for random theming if we don't know the type
+  const pokemonTypes = Object.keys(typeColors);
+
+  // Store favorite data globally for access from other functions
+  let favoritesPokemonData = [];
+
   function fetchFavorites() {
     const favoritesLoading = document.getElementById("favorites-loading");
     const favoritesEmpty = document.getElementById("favorites-empty");
@@ -67,6 +114,9 @@
         return response.json();
       })
       .then((favorites) => {
+        // Store favorites globally
+        favoritesPokemonData = favorites;
+
         // Hide loading state
         favoritesLoading.classList.add("hidden");
 
@@ -85,8 +135,11 @@
 
         // Hide loading state and show error
         favoritesLoading.classList.add("hidden");
-        favoritesEmpty.textContent =
-          "Failed to load favorites. Please try again later.";
+        favoritesEmpty.innerHTML = `
+          <div class="alert alert-error">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <span>Failed to load favorites. Please try again later.</span>
+          </div>`;
         favoritesEmpty.classList.remove("hidden");
       });
   }
@@ -97,46 +150,71 @@
 
     // Create a card for each favorite
     favorites.forEach((favorite) => {
+      // Get a consistent color for this Pokemon (based on name)
+      const nameHash = favorite.name.charCodeAt(0) % pokemonTypes.length;
+      const pokemonTypeColor = typeColors[pokemonTypes[nameHash]];
+
+      // Show proper Pokemon ID number (if available)
+      const pokemonIdFormatted = favorite.pokemonId
+        ? `#${String(favorite.pokemonId).padStart(3, "0")}`
+        : "";
+
       const card = document.createElement("div");
       card.className =
-        "card bg-base-100 border hover:shadow-md transition-shadow";
+        "card bg-base-100 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1 overflow-hidden";
+      card.style.borderTop = `3px solid ${pokemonTypeColor}`;
 
       // Default image if none provided
       const imageUrl =
         favorite.imageUrl ||
-        "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png";
+        `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${
+          favorite.pokemonId || 0
+        }.png`;
 
       card.innerHTML = `
-        <figure class="pt-2 bg-base-200">
-          <img 
-            src="${imageUrl}" 
-            alt="${favorite.name}" 
-            class="h-16 w-16 object-contain"
-            onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png';"
-          >
+        <figure class="relative pt-4 px-4 pb-2 bg-gradient-to-b from-base-200/50 to-base-100">
+          <div class="absolute top-2 right-2 text-xs font-mono text-base-content/60">${pokemonIdFormatted}</div>
+          <div class="w-full h-20 flex items-center justify-center">
+            <img 
+              src="${imageUrl}" 
+              alt="${favorite.name}" 
+              class="h-full object-contain drop-shadow-md transform hover:scale-110 transition-transform"
+              onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png';"
+            >
+          </div>
         </figure>
-        <div class="card-body p-2">
-          <h3 class="card-title text-sm justify-between capitalize">
-            ${favorite.name}
+        <div class="card-body p-3">
+          <div class="flex items-center justify-between">
+            <h3 class="card-title text-sm capitalize m-0">
+              ${favorite.name}
+            </h3>
             <button 
-              class="remove-favorite-btn btn btn-circle btn-xs btn-error"
+              class="remove-favorite-btn btn btn-circle btn-xs btn-ghost text-error hover:bg-error hover:text-white"
               data-id="${favorite._id}"
               title="Remove from favorites"
             >
-              ×
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
             </button>
-          </h3>
+          </div>
         </div>
       `;
 
       // Add event listener to remove button
       const removeButton = card.querySelector(".remove-favorite-btn");
       removeButton.addEventListener("click", () =>
-        removeFavorite(favorite._id)
+        confirmRemoveFavorite(favorite._id, favorite.name)
       );
 
       container.appendChild(card);
     });
+  }
+
+  function confirmRemoveFavorite(id, name) {
+    if (confirm(`Remove ${name} from favorites?`)) {
+      removeFavorite(id);
+    }
   }
 
   function removeFavorite(id) {
@@ -150,11 +228,42 @@
         return response.json();
       })
       .then(() => {
+        // Success animation
+        const toastContainer = document.createElement("div");
+        toastContainer.className = "toast toast-center";
+        toastContainer.innerHTML = `
+          <div class="alert alert-success">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <span>Pokémon removed from favorites!</span>
+          </div>
+        `;
+        document.body.appendChild(toastContainer);
+
+        // Remove the toast after 3 seconds
+        setTimeout(() => {
+          toastContainer.remove();
+        }, 3000);
+
         fetchFavorites(); // Refresh the list
       })
       .catch((error) => {
         console.error("Error removing favorite:", error);
-        alert("Failed to remove from favorites. Please try again.");
+
+        // Error toast
+        const errorToast = document.createElement("div");
+        errorToast.className = "toast toast-center";
+        errorToast.innerHTML = `
+          <div class="alert alert-error">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <span>Failed to remove from favorites. Please try again.</span>
+          </div>
+        `;
+        document.body.appendChild(errorToast);
+
+        // Remove the toast after 3 seconds
+        setTimeout(() => {
+          errorToast.remove();
+        }, 3000);
       });
   }
 </script>
