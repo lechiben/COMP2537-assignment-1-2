@@ -9,6 +9,7 @@ const timelineService = require("../services/timelineService");
 router.get("/", (req, res) => {
   res.render("index", {
     username: req.session.username || null,
+    isAdmin: req.session.isAdmin || false,
   });
 });
 
@@ -44,10 +45,15 @@ router.post("/login", async (req, res) => {
       return res.redirect("/auth");
     }
 
+    // Update last login time
+    user.lastLogin = new Date();
+    await user.save();
+
     // Set session data
     req.session.isAuthenticated = true;
     req.session.userId = user._id;
     req.session.username = user.username;
+    req.session.isAdmin = user.isAdmin;
 
     // Log the login activity
     await timelineService.logLogin(user._id, {
@@ -55,8 +61,12 @@ router.post("/login", async (req, res) => {
       userAgent: req.headers["user-agent"],
     });
 
-    // Redirect to home page
-    res.redirect("/");
+    // Redirect to homepage rendered based on role
+    if (user.isAdmin) {
+      res.redirect("/admin");
+    } else {
+      res.redirect("/");
+    }
   } catch (err) {
     console.error("Login error:", err);
     req.session.loginError = "Server error. Please try again.";
@@ -85,6 +95,8 @@ router.post("/register", async (req, res) => {
     const newUser = new User({
       username,
       password: hashedPassword,
+      isAdmin,
+      lastLogin: new Date(),
     });
 
     await newUser.save();
@@ -93,15 +105,21 @@ router.post("/register", async (req, res) => {
     req.session.isAuthenticated = true;
     req.session.userId = newUser._id;
     req.session.username = newUser.username;
+    req.session.isAdmin = newUser.isAdmin;
 
     // Log the registration activity
     await timelineService.logRegister(newUser._id, {
       ip: req.ip,
       userAgent: req.headers["user-agent"],
+      isAdmin,
     });
 
-    // Redirect to home page
-    res.redirect("/");
+    // Redirect to home page or admin dashboard
+    if (isAdmin) {
+      res.redirect("/admin");
+    } else {
+      res.redirect("/");
+    }
   } catch (err) {
     console.error("Registration error:", err);
     req.session.registerError = "Server error. Please try again.";
