@@ -1,0 +1,90 @@
+<!-- views/partials/admin-navbar.ejs with DaisyUI -->
+<div class="navbar bg-base-200 shadow-lg">
+  <div class="navbar-start">
+    <div class="dropdown">
+      <label tabindex="0" class="btn btn-ghost lg:hidden">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M4 6h16M4 12h8m-8 6h16"
+          />
+        </svg>
+      </label>
+      <ul
+        tabindex="0"
+        class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52"
+      >
+        <li><a href="/admin">Dashboard</a></li>
+        <li><a href="/admin/users">Manage Users</a></li>
+        <li><a href="/">Back to Site</a></li>
+      </ul>
+    </div>
+    <a href="/admin" class="btn btn-ghost normal-case text-xl">
+      <svg
+        class="h-8 w-8 mr-2"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+        ></path>
+      </svg>
+      Pokémon Admin
+    </a>
+  </div>
+
+  <div class="navbar-center hidden lg:flex">
+    <ul class="menu menu-horizontal px-1">
+      <li><a href="/admin">Dashboard</a></li>
+      <li><a href="/admin/users">Manage Users</a></li>
+    </ul>
+  </div>
+
+  <div class="navbar-end">
+    <a href="/" class="btn btn-ghost btn-sm">
+      <svg
+        class="h-4 w-4 mr-1"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+        ></path>
+      </svg>
+      Back to Site
+    </a>
+    <div class="dropdown dropdown-end">
+      <label
+        tabindex="0"
+        class="btn btn-ghost btn-circle avatar placeholder ml-2"
+      >
+        <div class="bg-neutral-focus text-neutral-content rounded-full w-10">
+          <span><%= username ? username.charAt(0).toUpperCase() : 'A' %></span>
+        </div>
+      </label>
+      <ul
+        tabindex="0"
+        class="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52"
+      >
+        <li class="p-2 text-xs opacity-70">Logged in as <%= username %></li>
+        <li><a href="/logout">Logout</a></li>
+      </ul>
+    </div>
+  </div>
+</div>
