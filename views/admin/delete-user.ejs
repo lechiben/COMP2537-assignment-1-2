@@ -1,0 +1,127 @@
+<!-- views/admin/delete-user.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Delete User - Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100 min-h-screen">
+    <!-- Admin Navbar -->
+    <%- include('partials/admin-navbar') %>
+
+    <div class="container mx-auto px-4 py-8">
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold">Delete User</h1>
+        <a
+          href="/admin/users/<%= user._id %>"
+          class="bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 px-4 rounded flex items-center"
+        >
+          <svg
+            class="w-4 h-4 mr-1"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 19l-7-7 7-7"
+            ></path>
+          </svg>
+          Back to User Details
+        </a>
+      </div>
+
+      <!-- Delete User Confirmation -->
+      <div
+        class="bg-white rounded-lg shadow-md overflow-hidden max-w-2xl mx-auto"
+      >
+        <div class="p-4 border-b bg-red-50">
+          <h2 class="text-lg font-semibold text-red-600">
+            Confirm User Deletion
+          </h2>
+        </div>
+
+        <div class="p-6">
+          <div class="flex items-center mb-6">
+            <div
+              class="h-16 w-16 bg-red-100 rounded-full flex items-center justify-center mr-4"
+            >
+              <svg
+                class="h-8 w-8 text-red-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                ></path>
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-lg font-medium text-gray-900">
+                Delete user "<%= user.username %>"?
+              </h3>
+              <p class="text-sm text-gray-500">This action cannot be undone.</p>
+            </div>
+          </div>
+
+          <div class="bg-yellow-50 p-4 rounded-md mb-6">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <svg
+                  class="h-5 w-5 text-yellow-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  ></path>
+                </svg>
+              </div>
+              <div class="ml-3">
+                <h3 class="text-sm font-medium text-yellow-800">Warning</h3>
+                <div class="mt-2 text-sm text-yellow-700">
+                  <p>Deleting this user will permanently remove:</p>
+                  <ul class="list-disc pl-5 mt-1 space-y-1">
+                    <li>User account and credentials</li>
+                    <li>All favorites saved by this user</li>
+                    <li>Activity history</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <form
+            action="/admin/users/<%= user._id %>/delete"
+            method="POST"
+            class="border-t pt-6 flex items-center justify-end"
+          >
+            <a
+              href="/admin/users/<%= user._id %>"
+              class="text-gray-500 hover:text-gray-700 mr-4"
+              >Cancel</a
+            >
+            <button
+              type="submit"
+              class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded"
+            >
+              Delete User
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

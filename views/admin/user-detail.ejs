@@ -1,0 +1,326 @@
+<!-- views/admin/user-detail.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User Details - Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100 min-h-screen">
+    <!-- Admin Navbar -->
+    <%- include('../partials/admin-navbar') %>
+
+    <div class="container mx-auto px-4 py-8">
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold">User Details</h1>
+        <div class="flex space-x-3">
+          <a
+            href="/admin/users"
+            class="bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 px-4 rounded flex items-center"
+          >
+            <svg
+              class="w-4 h-4 mr-1"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 19l-7-7 7-7"
+              ></path>
+            </svg>
+            Back to Users
+          </a>
+          <a
+            href="/admin/users/<%= user._id %>/edit"
+            class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded flex items-center"
+          >
+            <svg
+              class="w-4 h-4 mr-1"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+              ></path>
+            </svg>
+            Edit User
+          </a>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- User Info Card -->
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+          <div class="p-4 border-b">
+            <h2 class="text-lg font-semibold">User Information</h2>
+          </div>
+          <div class="p-4">
+            <div class="flex items-center justify-center mb-6">
+              <div
+                class="h-20 w-20 bg-blue-100 rounded-full flex items-center justify-center"
+              >
+                <span class="text-blue-600 text-3xl font-bold"
+                  ><%= user.username.charAt(0).toUpperCase() %></span
+                >
+              </div>
+            </div>
+
+            <div class="space-y-3">
+              <div>
+                <p class="text-sm text-gray-500">Username</p>
+                <p class="font-semibold"><%= user.username %></p>
+              </div>
+
+              <div>
+                <p class="text-sm text-gray-500">User ID</p>
+                <p class="font-mono text-sm"><%= user._id %></p>
+              </div>
+
+              <div>
+                <p class="text-sm text-gray-500">Role</p>
+                <p>
+                  <% if (user.isAdmin) { %>
+                  <span
+                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800"
+                    >Admin</span
+                  >
+                  <% } else { %>
+                  <span
+                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800"
+                    >User</span
+                  >
+                  <% } %>
+                </p>
+              </div>
+
+              <div>
+                <p class="text-sm text-gray-500">Registered</p>
+                <p><%= new Date(user.createdAt).toLocaleString() %></p>
+              </div>
+
+              <div>
+                <p class="text-sm text-gray-500">Last Login</p>
+                <p>
+                  <%= user.lastLogin ? new Date(user.lastLogin).toLocaleString()
+                  : 'Never' %>
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="p-4 border-t flex justify-between">
+            <% if (!user.isAdmin) { %>
+            <form
+              action="/admin/users/<%= user._id %>/make-admin"
+              method="POST"
+            >
+              <button
+                type="submit"
+                class="bg-purple-500 hover:bg-purple-600 text-white py-2 px-4 rounded text-sm"
+              >
+                Make Admin
+              </button>
+            </form>
+            <% } else if (user._id.toString() !== username.userId) { %>
+            <form
+              action="/admin/users/<%= user._id %>/remove-admin"
+              method="POST"
+            >
+              <button
+                type="submit"
+                class="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded text-sm"
+              >
+                Remove Admin
+              </button>
+            </form>
+            <% } else { %>
+            <span class="text-gray-500 text-sm"
+              >You cannot change your own admin status</span
+            >
+            <% } %> <% if (user._id.toString() !== username.userId) { %>
+            <a
+              href="/admin/users/<%= user._id %>/delete"
+              class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded text-sm"
+            >
+              Delete User
+            </a>
+            <% } else { %>
+            <span class="text-gray-500 text-sm"
+              >You cannot delete your own account</span
+            >
+            <% } %>
+          </div>
+        </div>
+
+        <!-- User Favorites -->
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+          <div class="p-4 border-b flex justify-between items-center">
+            <h2 class="text-lg font-semibold">
+              Favorites (<%= favorites.length %>)
+            </h2>
+          </div>
+          <div class="p-4">
+            <% if (favorites.length === 0) { %>
+            <div class="text-center py-6">
+              <svg
+                class="mx-auto h-12 w-12 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                ></path>
+              </svg>
+              <h3 class="mt-2 text-sm font-medium text-gray-900">
+                No favorites
+              </h3>
+              <p class="mt-1 text-sm text-gray-500">
+                This user hasn't favorited any Pokémon yet.
+              </p>
+            </div>
+            <% } else { %>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <% for (let i = 0; i < favorites.length; i++) { %> <% const
+              favorite = favorites[i]; %>
+              <div class="border rounded-lg overflow-hidden">
+                <div class="p-2 bg-gray-50 border-b">
+                  <p class="text-xs text-gray-500">
+                    Pokémon #<%= favorite.pokemonId %>
+                  </p>
+                </div>
+                <div class="p-3 flex items-center space-x-2">
+                  <% if (favorite.imageUrl) { %>
+                  <img
+                    src="<%= favorite.imageUrl %>"
+                    alt="<%= favorite.name %>"
+                    class="w-8 h-8 object-contain"
+                  />
+                  <% } else { %>
+                  <div
+                    class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center"
+                  >
+                    <span class="text-gray-500 text-xs"
+                      ><%= favorite.name.charAt(0).toUpperCase() %></span
+                    >
+                  </div>
+                  <% } %>
+                  <p class="capitalize text-sm font-medium">
+                    <%= favorite.name %>
+                  </p>
+                </div>
+                <div
+                  class="text-xs text-gray-500 bg-gray-50 p-1 text-right border-t"
+                >
+                  <%= new Date(favorite.createdAt).toLocaleDateString() %>
+                </div>
+              </div>
+              <% } %>
+            </div>
+            <% } %>
+          </div>
+        </div>
+
+        <!-- User Activity -->
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+          <div class="p-4 border-b">
+            <h2 class="text-lg font-semibold">Recent Activity</h2>
+          </div>
+          <div class="p-4 max-h-96 overflow-y-auto">
+            <% if (activities.length === 0) { %>
+            <div class="text-center py-6">
+              <svg
+                class="mx-auto h-12 w-12 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                ></path>
+              </svg>
+              <h3 class="mt-2 text-sm font-medium text-gray-900">
+                No activity
+              </h3>
+              <p class="mt-1 text-sm text-gray-500">
+                This user hasn't performed any actions yet.
+              </p>
+            </div>
+            <% } else { %>
+            <div class="relative">
+              <!-- Timeline Line -->
+              <div
+                class="absolute left-3 top-0 bottom-0 w-0.5 bg-gray-200"
+              ></div>
+
+              <!-- Timeline Items -->
+              <% for (let i = 0; i < activities.length; i++) { %> <% const item
+              = activities[i]; %>
+              <div class="relative pl-8 pb-5">
+                <!-- Timeline Dot -->
+                <% let dotColor = 'bg-gray-400'; let actionText = 'Activity';
+                let actionIcon = '🔄'; if (item.action === 'login') { dotColor =
+                'bg-green-500'; actionText = 'Logged in'; actionIcon = '🔐'; }
+                else if (item.action === 'register') { dotColor =
+                'bg-purple-500'; actionText = 'Registered account'; actionIcon =
+                '✨'; } else if (item.action === 'logout') { dotColor =
+                'bg-yellow-500'; actionText = 'Logged out'; actionIcon = '👋'; }
+                else if (item.action === 'favorite_added') { dotColor =
+                'bg-red-500'; actionText = 'Added to favorites'; actionIcon =
+                '❤️'; } else if (item.action === 'favorite_removed') { dotColor
+                = 'bg-blue-500'; actionText = 'Removed from favorites';
+                actionIcon = '💔'; } %>
+
+                <div
+                  class="absolute left-1.5 top-1.5 h-3 w-3 rounded-full <%= dotColor %> border-2 border-white shadow-sm"
+                ></div>
+
+                <!-- Timeline Content -->
+                <div class="flex flex-col">
+                  <div class="flex items-baseline">
+                    <h3 class="text-sm font-medium">
+                      <%= actionIcon %> <%= actionText %>
+                    </h3>
+                    <span class="ml-2 text-xs text-gray-500">
+                      <%= new Date(item.timestamp).toLocaleString() %>
+                    </span>
+                  </div>
+
+                  <% if (item.action === 'favorite_added' || item.action ===
+                  'favorite_removed') { %> <% if (item.details &&
+                  item.details.pokemonName) { %>
+                  <div class="mt-1 text-xs text-gray-700">
+                    Pokémon:
+                    <span class="font-medium capitalize"
+                      ><%= item.details.pokemonName %></span
+                    >
+                  </div>
+                  <% } %> <% } %> <% if (item.details && item.details.ip) { %>
+                  <div class="text-xs text-gray-500">
+                    IP: <%= item.details.ip %>
+                  </div>
+                  <% } %>
+                </div>
+              </div>
+              <% } %>
+            </div>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

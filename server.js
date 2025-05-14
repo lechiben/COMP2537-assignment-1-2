@@ -12,26 +12,20 @@ const app = express();
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
-// Session middleware configuration
-app.use(
-  session({
-    secret: "keyboard cat",
-    resave: false,
-    saveUninitialized: false,
-    cookie: { secure: process.env.NODE_ENV === "production" },
-  })
-);
-
-// Store session in server
+// Consolidated session middleware configuration - Fix session middleware duplication
 const FileStore = require("session-file-store")(session);
-const fileStoreOptions = {}; // if we dont reassign the variable to different reference/ addresses we always use const.
+const fileStoreOptions = {};
 
-// add nodemon.json to stop server from reloading every save
 app.use(
   session({
     store: new FileStore(fileStoreOptions),
     secret: "keyboard cat",
     resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    },
   })
 );
 
@@ -46,11 +40,13 @@ app.use(express.json());
 const authRoutes = require("./routes/auth");
 const favoritesRoutes = require("./routes/favorites");
 const timelineRoutes = require("./routes/timeline");
+const adminRoutes = require("./routes/admin"); // Add admin routes
 
 // Use route files
 app.use("/", authRoutes);
 app.use("/favorites", favoritesRoutes);
 app.use("/timeline", timelineRoutes);
+app.use("/admin", adminRoutes); // Register admin routes
 
 // Start server after connecting to MongoDB
 (async () => {

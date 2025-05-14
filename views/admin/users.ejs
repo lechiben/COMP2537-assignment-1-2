@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="pokemon">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manage Users - Admin Dashboard</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/daisyui@3.1.7/dist/full.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body>
+    <!-- Admin Navbar -->
+    <%- include('../partials/admin-navbar') %>
+
+    <div class="container mx-auto px-4 py-8">
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold">Manage Users</h1>
+        <a href="/admin" class="btn btn-outline btn-sm gap-2">
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 19l-7-7 7-7"
+            ></path>
+          </svg>
+          Back to Dashboard
+        </a>
+      </div>
+
+      <!-- Users Table -->
+      <div class="card bg-base-100 shadow-xl">
+        <div class="card-body p-0">
+          <div class="flex justify-between items-center p-4 border-b">
+            <h2 class="card-title">All Users</h2>
+            <div class="text-sm">
+              <% if (users && pagination) { %> Showing <%=
+              ((pagination.currentPage - 1) * pagination.limit) + 1 %>-<%=
+              Math.min((pagination.currentPage - 1) * pagination.limit +
+              pagination.limit, pagination.totalPages * pagination.limit) %> of
+              <%= pagination.totalPages * pagination.limit %> users <% } %>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="table table-zebra">
+              <thead>
+                <tr>
+                  <th>Username</th>
+                  <th>Role</th>
+                  <th>Registered</th>
+                  <th>Last Login</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% if (!users || users.length === 0) { %>
+                <tr>
+                  <td colspan="5" class="text-center">No users found</td>
+                </tr>
+                <% } else { %> <% for (let i = 0; i < users.length; i++) { %> <%
+                const user = users[i]; %>
+                <tr>
+                  <td>
+                    <div class="font-medium"><%= user.username %></div>
+                    <div class="text-xs opacity-70">ID: <%= user._id %></div>
+                  </td>
+                  <td>
+                    <% if (user.isAdmin) { %>
+                    <div class="badge badge-primary">Admin</div>
+                    <% } else { %>
+                    <div class="badge badge-ghost">User</div>
+                    <% } %>
+                  </td>
+                  <td>
+                    <div>
+                      <%= new Date(user.createdAt).toLocaleDateString() %>
+                    </div>
+                    <div class="text-xs opacity-70">
+                      <%= new Date(user.createdAt).toLocaleTimeString() %>
+                    </div>
+                  </td>
+                  <td>
+                    <% if (user.lastLogin) { %>
+                    <div>
+                      <%= new Date(user.lastLogin).toLocaleDateString() %>
+                    </div>
+                    <div class="text-xs opacity-70">
+                      <%= new Date(user.lastLogin).toLocaleTimeString() %>
+                    </div>
+                    <% } else { %>
+                    <div class="text-xs opacity-70">Never</div>
+                    <% } %>
+                  </td>
+                  <td>
+                    <div class="flex gap-2">
+                      <a
+                        href="/admin/users/<%= user._id %>"
+                        class="btn btn-xs btn-info"
+                        >View</a
+                      >
+                      <a
+                        href="/admin/users/<%= user._id %>/edit"
+                        class="btn btn-xs btn-warning"
+                        >Edit</a
+                      >
+                      <a
+                        href="/admin/users/<%= user._id %>/delete"
+                        class="btn btn-xs btn-error"
+                        >Delete</a
+                      >
+                    </div>
+                  </td>
+                </tr>
+                <% } %> <% } %>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <% if (pagination && pagination.totalPages > 1) { %>
+          <div class="flex justify-center p-4 border-t">
+            <div class="join">
+              <% if (pagination.currentPage > 1) { %>
+              <a
+                href="/admin/users?page=<%= pagination.currentPage - 1 %>&limit=<%= pagination.limit %>"
+                class="join-item btn"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 19l-7-7 7-7"
+                  ></path>
+                </svg>
+              </a>
+              <% } else { %>
+              <button disabled class="join-item btn btn-disabled">
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 19l-7-7 7-7"
+                  ></path>
+                </svg>
+              </button>
+              <% } %> <% /* Calculate range of pages to show */ let startPage =
+              1; let endPage = pagination.totalPages; if (pagination.totalPages
+              > 5) { startPage = Math.max(1, pagination.currentPage - 2);
+              endPage = Math.min(pagination.totalPages, startPage + 4); if
+              (endPage - startPage < 4) { startPage = Math.max(1, endPage - 4);
+              } } %> <% for (let i = startPage; i <= endPage; i++) { %> <% if (i
+              === pagination.currentPage) { %>
+              <button class="join-item btn btn-active"><%= i %></button>
+              <% } else { %>
+              <a
+                href="/admin/users?page=<%= i %>&limit=<%= pagination.limit %>"
+                class="join-item btn"
+                ><%= i %></a
+              >
+              <% } %> <% } %> <% if (pagination.currentPage <
+              pagination.totalPages) { %>
+              <a
+                href="/admin/users?page=<%= pagination.currentPage + 1 %>&limit=<%= pagination.limit %>"
+                class="join-item btn"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 5l7 7-7 7"
+                  ></path>
+                </svg>
+              </a>
+              <% } else { %>
+              <button disabled class="join-item btn btn-disabled">
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 5l7 7-7 7"
+                  ></path>
+                </svg>
+              </button>
+              <% } %>
+            </div>
+          </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
