@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const path = require("path");
 const dotenv = require("dotenv");
+const mongoStore = require("connect-mongo");
 const session = require("express-session");
 
 dotenv.config();
@@ -12,19 +13,19 @@ const app = express();
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
-// Consolidated session middleware configuration - Fix session middleware duplication
-const FileStore = require("session-file-store")(session);
-const fileStoreOptions = {};
-
 app.use(
   session({
-    store: new FileStore(fileStoreOptions),
-    secret: "keyboard cat",
+    secret: process.env.SESSION_SECRET || "someSecret",
     resave: false,
     saveUninitialized: false,
+    store: mongoStore.create({
+      mongoUrl: process.env.MONGODB_URI,
+      ttl: 14 * 24 * 60 * 60, // Session expiration in seconds (14 days)
+    }),
     cookie: {
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      maxAge: 14 * 24 * 60 * 60 * 1000, // Cookie expires in 14 days
+      httpOnly: true,
+      secure: false, // Set to true if using HTTPS
     },
   })
 );

@@ -159,6 +159,11 @@ router.get("/logout", async (req, res) => {
 
 // For backward compatibility - redirect old routes to new combined auth page
 router.get("/login", (req, res) => {
+  if (req.body.rememberMe) {
+    req.session.cookie.maxAge = 14 * 24 * 60 * 60 * 1000; // 14 days
+  } else {
+    req.session.cookie.expires = false; // Session cookie (expires on browser close)
+  }
   res.redirect("/auth");
 });
 
