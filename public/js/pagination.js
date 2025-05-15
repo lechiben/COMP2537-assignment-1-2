@@ -91,6 +91,22 @@ document.addEventListener("DOMContentLoaded", function () {
     const totalPages = Math.ceil(filteredPokemon.length / itemsPerPage);
     paginationBox.innerHTML = "";
 
+    // First button
+    if (totalPages > 1) {
+      const firstButton = document.createElement("button");
+      firstButton.textContent = "First";
+      firstButton.className =
+        "px-3 py-1 border rounded-md " +
+        (currentPage === 1
+          ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+          : "bg-white hover:bg-gray-100");
+      firstButton.disabled = currentPage === 1;
+      firstButton.addEventListener("click", () => {
+        loadPage(1);
+      });
+      paginationBox.appendChild(firstButton);
+    }
+
     // Previous button
     if (totalPages > 1) {
       const prevButton = document.createElement("button");
@@ -146,6 +162,24 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       });
       paginationBox.appendChild(nextButton);
+    }
+
+    // Last button
+    if (totalPages > 1) {
+      const lastButton = document.createElement("button");
+      lastButton.textContent = "Last";
+      lastButton.className =
+        "px-3 py-1 border rounded-md " +
+        (currentPage === totalPages
+          ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+          : "bg-white hover:bg-gray-100");
+      lastButton.disabled = currentPage === totalPages;
+      lastButton.addEventListener("click", () => {
+        if (currentPage < totalPages) {
+          loadPage(totalPages);
+        }
+      });
+      paginationBox.appendChild(lastButton);
     }
   }
 
