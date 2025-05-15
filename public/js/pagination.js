@@ -1,6 +1,7 @@
 // public/js/pagination.js
 document.addEventListener("DOMContentLoaded", function () {
   const resultsDiv = document.getElementById("result");
+  const typeFilterBox = document.getElementById("type-filter-box");
   const paginationBox = document.getElementById("pagination-box");
   const searchInput = document.getElementById("search-input");
   const favoritesListElement =
@@ -82,6 +83,24 @@ document.addEventListener("DOMContentLoaded", function () {
     currentPage = 1;
     renderPagination();
     loadPage(currentPage);
+  }
+
+  /**
+   * Render type filter buttons
+   */
+  function renderTypeFilters() {
+    const types = ["Normal", "Fire", "Fighting", "Water", "Flying", "Grass", "Poison", "Electric", "Ground", "Psychic", "Rock", "Ice", "Bug", "Dragon", "Ghost", "Dark", "Steel", "Fairy", "Stellar"];
+    const colours = ["bg-neutral-500", "bg-orange-600", "bg-red-400", "bg-blue-600", "bg-indigo-300", "bg-green-600", "bg-purple-800", "bg-yellow-300", "bg-amber-900", "bg-pink-600", "bg-stone-600", "bg-sky-300", "bg-lime-700", "bg-violet-950", "bg-fuchsia-950", "bg-neutral-950", "bg-slate-600", "bg-pink-300", "bg-yellow-200"];
+
+    for (i = 0; i < types.length; i++) {
+      const typeButton = document.createElement("button");
+      typeButton.textContent = types[i];
+      typeButton.className = `px-3 py-1 border rounded-md text-white ${colours[i]}`;
+      typeButton.addEventListener("click", () => {
+        console.log(`Hit ${types[i]} filter button`);
+      });
+      typeFilterBox.appendChild(typeButton);
+    }
   }
 
   /**
@@ -188,6 +207,7 @@ document.addEventListener("DOMContentLoaded", function () {
    */
   function loadPage(page) {
     currentPage = page;
+    renderTypeFilters();
     renderPagination();
 
     resultsDiv.innerHTML = `<p class="text-gray-500 col-span-full text-center">Loading Pokémon...</p>`;
