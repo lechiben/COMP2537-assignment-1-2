@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const itemsPerPage = 12;
   let currentPage = 1;
   let allPokemon = [];
+  let typeFilters = [];
   let filteredPokemon = [];
   let favorites = [];
 
@@ -76,7 +77,7 @@ document.addEventListener("DOMContentLoaded", function () {
       filteredPokemon = [...allPokemon];
     } else {
       filteredPokemon = allPokemon.filter((pokemon) =>
-        pokemon.name.toLowerCase().includes(searchTerm)
+        pokemon.name.toLowerCase().includes(searchTerm),
       );
     }
 
@@ -92,12 +93,13 @@ document.addEventListener("DOMContentLoaded", function () {
     const types = ["Normal", "Fire", "Fighting", "Water", "Flying", "Grass", "Poison", "Electric", "Ground", "Psychic", "Rock", "Ice", "Bug", "Dragon", "Ghost", "Dark", "Steel", "Fairy", "Stellar"];
     const colours = ["bg-neutral-500", "bg-orange-600", "bg-red-400", "bg-blue-600", "bg-indigo-300", "bg-green-600", "bg-purple-800", "bg-yellow-300", "bg-amber-900", "bg-pink-600", "bg-stone-600", "bg-sky-300", "bg-lime-700", "bg-violet-950", "bg-fuchsia-950", "bg-neutral-950", "bg-slate-600", "bg-pink-300", "bg-yellow-200"];
 
-    for (i = 0; i < types.length; i++) {
+    for (let i = 0; i < types.length; i++) {
       const typeButton = document.createElement("button");
       typeButton.textContent = types[i];
       typeButton.className = `px-3 py-1 border rounded-md text-white ${colours[i]}`;
       typeButton.addEventListener("click", () => {
-        console.log(`Hit ${types[i]} filter button`);
+        typeFilters.push(types[i].toLowerCase());
+        console.log(typeFilters);
       });
       typeFilterBox.appendChild(typeButton);
     }
